@@ -20,15 +20,13 @@ import java.util.List;
  * @description 群消息处理器
  */
 @Component
-@Slf4j
 public class GroupMessageProcessor extends BaseMessageProcessor implements MessageProcessor<IMReceiveInfo> {
-
-    @Async
+    private final Logger logger = LoggerFactory.getLogger(GroupMessageProcessor.class);
     @Override
     public void process(IMReceiveInfo receiveInfo) {
         IMUserInfo sender = receiveInfo.getSender();
         List<IMUserInfo> receivers = receiveInfo.getReceivers();
-        log.info("GroupMessageProcessor.process|接收到群消息,发送消息用户:{}，接收消息用户数量:{}，消息内容:{}", sender.getUserId(), receivers.size(), receiveInfo.getData());
+        logger.info("GroupMessageProcessor.process|接收到群消息,发送消息用户:{}，接收消息用户数量:{}，消息内容:{}", sender.getUserId(), receivers.size(), receiveInfo.getData());
         receivers.forEach((receiver) -> {
             try{
                 ChannelHandlerContext channelHandlerCtx = UserChannelContextCache.getChannelCtx(receiver.getUserId(), receiver.getTerminal());
@@ -41,11 +39,11 @@ public class GroupMessageProcessor extends BaseMessageProcessor implements Messa
                 }else{
                     //未找到用户的连接信息
                     sendGroupMessageResult(receiveInfo, receiver, IMSendCode.NOT_FIND_CHANNEL);
-                    log.error("GroupMessageProcessor.process|未找到Channel,发送者:{}, 接收者:{}, 消息内容:{}", sender.getUserId(), receiver.getUserId(), receiveInfo.getData());
+                    logger.error("GroupMessageProcessor.process|未找到Channel,发送者:{}, 接收者:{}, 消息内容:{}", sender.getUserId(), receiver.getUserId(), receiveInfo.getData());
                 }
             }catch (Exception e){
                 sendGroupMessageResult(receiveInfo, receiver, IMSendCode.UNKNOW_ERROR);
-                log.error("GroupMessageProcessor.process|发送消息异常,发送者:{}, 接收者:{}, 消息内容:{}, 异常信息:{}", sender.getUserId(), receiver.getUserId(), receiveInfo.getData(), e.getMessage());
+                logger.error("GroupMessageProcessor.process|发送消息异常,发送者:{}, 接收者:{}, 消息内容:{}, 异常信息:{}", sender.getUserId(), receiver.getUserId(), receiveInfo.getData(), e.getMessage());
             }
         });
     }
